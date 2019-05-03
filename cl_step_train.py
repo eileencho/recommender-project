@@ -43,11 +43,11 @@ def main(spark, data_file, val_file, model_file):
     model = als.fit(df) 
     
     val_predictions = model.transform(val_df)
-    print("hi")
     
-    # evaluator = RegressionEvaluator(metricName = "rmse", labelCol = "count", predictionCol = "prediction")
-    # rmse = evaluator.evaluate(val_predictions)
-    # print("According to Tin, the root mean sqare error = " + str(rmse))
+    
+    evaluator = RegressionEvaluator(metricName = "rmse", labelCol = "count", predictionCol = "prediction")
+    rmse = evaluator.evaluate(val_predictions)
+    print("According to Tin, the root mean sqare error = " + str(rmse))
 
 # Only enter this block if we're in main
 if __name__ == "__main__":
