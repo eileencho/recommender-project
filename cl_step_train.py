@@ -27,9 +27,9 @@ def main(spark, data_file, val_file, model_file):
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
     
     df = user_indexer.fit(df).transform(df)
-    df = item_indexer.fit(df).transform(df)
+    df = track_indexer.fit(df).transform(df)
     val_df = user_indexer.transform(val_df)
-    val_df = item_indexer.transform(val_df)
+    val_df = track_indexer.transform(val_df)
 
     print("success!")
 
@@ -65,4 +65,4 @@ if __name__ == "__main__":
 
 
     # Call our main routine
-    main(spark, data_file, model_file)
+    main(spark, data_file, val_file, model_file)
