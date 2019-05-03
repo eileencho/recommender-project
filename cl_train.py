@@ -47,7 +47,7 @@ def main(spark, data_file, model_file):
     #cross vavildation 5-fold 
     crossval = CrossValidator(estimator = pipeline, estimatorParamMaps = paramGrid, \
 				evaluator = RegressionEvaluator(metricName="rmse", labelCol="count",\
-                                predictionCol="prediction")(), numFolds = 5)
+                                predictionCol="prediction"), numFolds = 5)
 
     model = crossval.fit(df_sub)
     model = model.bestModel 
