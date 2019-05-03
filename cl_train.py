@@ -16,51 +16,49 @@ import sys
 from pyspark.sql import SparkSession
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.recommendation import ALS
+from pyspark.sql import Row
 from pyspark.ml.feature import StringIndexer
+from pyspark.ml import Pipeline
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
+from pyspark.ml.evaluation import RegressionEvaluator
 # TODO: you may need to add imports here
 
 
 def main(spark, data_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-
-    # Give the dataframe a temporary view so we can run SQL queries
-    df.createOrReplaceTempView(df)
+    df_sub = df.sample(True, 0.01)
     
-    # Select out the 20 attribute columns labeled mfcc_00, mfcc_01, ..., mfcc_19
-    mfcc = ", ".join(["mfcc_0{}".format(i) for i in range(10)]+["mfcc_{}".format(i) for i in range(10,20)])
-    data_table = spark.sql("SELECT {} FROM df".format(mfcc))
-    data_table.createOrReplaceTempView(data_table)
+    user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
+    track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
+
+    # ALS Model 
+    als = ALS(maxIter=5, \
+             userCol="userNew", itemCol="trackNew", ratingCol="count",\
+             coldStartStrategy="drop")
     
-    # Encode the genre field as a target label using a StringIndexer and store the result as label.
-    labels = spark.sql("SELECT genre FROM df")
-    indexer = StringIndexer() #inputCol="category", outputCol="categoryIndex"
-    label = indexer.fit(labels).transform(labels)
+    pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
 
-    # Define a multi-class logistic regression classifier
-    lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8)
+    paramGrid = ParamGridBuilder().addGrid(als.regParam, [0.0, 0.001, 0.01, 0.1, 0.5, 1,10]) \
+                                  .addGrid(als.alpha, [0.01, 0.1, 1, 5, 10]) \
+                                  .addGrid(als.rank, [5, 10, 20, 50, 100, 500, 1000]) \
+                                  .build()
     
-    # Optimize the hyper-parameters (elastic net parameter and regularization weight) of 
-    #your model by 5-fold cross-validation on the training set. 
-    #Use at least 5 distinct values for each parameter in your grid.
-    lrModel = lr.fit(training)
-    
-    #  Combine the entire process into a Pipeline object. 
-    # Once the model pipeline has been fit, save it to the provided model filename.
-    model_file = model_file + "/lrmodel"
-    lr.Model.save(model_file)
-    ###
+    #cross vavildation 5-fold 
+    crossval = CrossValidator(estimator = pipeline, estimatorParamMaps = paramGrid, \
+				evaluator = RegressionEvaluator(metricName="rmse", labelCol="count",\
+                                predictionCol="prediction")(), numFolds = 5)
 
-    pass
-
-
+    model = crossval.fit(df_sub)
+    model = model.bestModel 
+    model.write().overwrite().save(model_file)
 
 
 # Only enter this block if we're in main
 if __name__ == "__main__":
 
     # Create the spark session object
-    spark = SparkSession.builder.appName('supervised_train').getOrCreate()
+    spark = SparkSession.builder.appName('cl_train').getOrCreate()
 
     # Get the filename from the command line
     data_file = sys.argv[1]
