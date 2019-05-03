@@ -26,18 +26,18 @@ def main(spark, data_file, val_file, model_file):
     val_df = user_indexer.transform(val_df)
     val_df = item_indexer.transform(val_df)
 
-    # ALS Model 
-    als = ALS(maxIter=5, alpha = 1, regParam = 1, rank = 10,  \
-             userCol="userNew", itemCol="trackNew", ratingCol="count",\
-             coldStartStrategy="drop")
+    # # ALS Model 
+    # als = ALS(maxIter=5, alpha = 1, regParam = 1, rank = 10,  \
+    #          userCol="userNew", itemCol="trackNew", ratingCol="count",\
+    #          coldStartStrategy="drop")
     
-    model = als.fit(df) 
+    # model = als.fit(df) 
     
-    val_predictions = model.transform(val_df)
+    # val_predictions = model.transform(val_df)
     
-    evaluator = RegressionEvaluator(metricName = "rmse", labelCol = "count", predictionCol = "prediction")
-    rmse = evaluator.evaluate(val_predictions)
-    print("According to Tin, the root mean sqare error = " + str(rmse))
+    # evaluator = RegressionEvaluator(metricName = "rmse", labelCol = "count", predictionCol = "prediction")
+    # rmse = evaluator.evaluate(val_predictions)
+    # print("According to Tin, the root mean sqare error = " + str(rmse))
 
 # Only enter this block if we're in main
 if __name__ == "__main__":
