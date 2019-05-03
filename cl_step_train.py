@@ -14,9 +14,9 @@ from pyspark.ml.evaluation import RegressionEvaluator
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-    df = df.sample(True, 0.01)
+    df = df.sample(True, 0.001)
     val_df = spark.read.parquet(val_file)
-    val_df = df.sample(True, 0.01) 
+    val_df = df.sample(True, 0.001) 
     
     user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
