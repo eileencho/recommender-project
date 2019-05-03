@@ -14,25 +14,13 @@ import sys
 
 # And pyspark.sql to get the spark session
 from pyspark.sql import SparkSession
+from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.ml.recommendation import ALS
 from pyspark.ml.feature import StringIndexer
-from pyspark.ml.classification import LogisticRegression
 # TODO: you may need to add imports here
 
 
 def main(spark, data_file, model_file):
-    '''Main routine for supervised training
-
-    Parameters
-    ----------
-    spark : SparkSession object
-
-    data_file : string, path to the parquet file to load
-
-    model_file : string, path to store the serialized model file
-    '''
-
-    ###
-    # TODO: YOUR CODE GOES HERE
     # Load the dataframe
     df = spark.read.parquet(data_file)
 
