@@ -26,10 +26,12 @@ def main(spark, data_file, val_file, model_file):
     user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
     
-    df = user_indexer.fit(df).transform(df)
-    df = track_indexer.fit(df).transform(df)
-    val_df = user_indexer.transform(val_df)
-    val_df = track_indexer.transform(val_df)
+    user_indexed = user_indexer.fit(df)
+    df =user_indexed.transform(df)
+    track_indexed = track_indexer.fit(df)
+    df =track_indexed.transform(df)
+    val_df = user_indexed.transform(val_df)
+    val_df = track_indexed.transform(val_df)
 
     print("success!")
 
