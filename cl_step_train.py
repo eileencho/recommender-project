@@ -1,3 +1,8 @@
+'''Usage:
+
+    $ spark-submit cl_step_train.py hdfs:/user/bm106/pub/project/cf_train.parquet hdfs:/user/bm106/pub/project/cf_validation.parquet hdfs:/user/ec3636/step_model
+
+'''
 # We need sys to get the command line arguments
 import sys
 
@@ -26,6 +31,8 @@ def main(spark, data_file, val_file, model_file):
     val_df = user_indexer.transform(val_df)
     val_df = item_indexer.transform(val_df)
 
+    print("success!")
+
     # # ALS Model 
     # als = ALS(maxIter=5, alpha = 1, regParam = 1, rank = 10,  \
     #          userCol="userNew", itemCol="trackNew", ratingCol="count",\
@@ -48,8 +55,14 @@ if __name__ == "__main__":
     # Get the filename from the command line
     data_file = sys.argv[1]
 
+    #validation file
+
+    val_file = sys.argv[2]
+
     # And the location to store the trained model
-    model_file = sys.argv[2]
+    model_file = sys.argv[3]
+
+
 
     # Call our main routine
     main(spark, data_file, model_file)
