@@ -58,7 +58,7 @@ def main(spark, data_file, val_file, model_file):
                   als = ALS(maxIter=5, regParam = i, alpha = j, rank = k, \
                             userCol="userNew", itemCol="trackNew", ratingCol="count",\
                             coldStartStrategy="drop")
-                  model = als.fit(df) 
+                  model = pipeline.fit(df) 
                   val_predictions = model.transform(val_df)
                   rmse = evaluator.evaluate(val_predictions)
                   RMSE[rmse] = model
