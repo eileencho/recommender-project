@@ -63,6 +63,7 @@ def main(spark, data_file, val_file, model_file):
                   rmse = evaluator.evaluate(val_predictions)
                   RMSE[rmse] = model
                   count += 1
+                  print(count)
     best_RMSE = min(list(RMSE.keys()))
     print(best_RMSE)
     print(count)
