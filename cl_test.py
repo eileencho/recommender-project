@@ -15,7 +15,8 @@ import sys
 # And pyspark.sql to get the spark session
 from pyspark.sql import SparkSession
 from pyspark.ml import PipelineModel
-from pyspark.mllib.evaluation import MulticlassMetrics
+from pyspark.mllib.evaluation import RankingMetrics
+
 
 # TODO: you may need to add imports here
 
@@ -37,11 +38,14 @@ def main(spark, model_file, data_file):
     df = spark.read.parquet(data_file)
     model = PipelineModel.load(model_file)
     predictions = model.transform(df)
+    #predictions_sorted = predictions.orderBy(desc('count')).limit(500).collect()
+
+
+    scoreAndLabels = predictions.select('prediction','count').rdd.map(tuple)
+    metrics = RankingMetrics(predictionAndLabels)
+    precision = metrics.precisionAt(500)
+    print(precision)
     ###
-
-    pass
-
-
 
 
 # Only enter this block if we're in main
