@@ -47,10 +47,6 @@ def main(spark, model_file, data_file):
     print(precision)
     ###
 
-    pass
-
-
-
 
 # Only enter this block if we're in main
 if __name__ == "__main__":
