@@ -42,7 +42,7 @@ def main(spark, model_file, data_file):
 
 
     scoreAndLabels = predictions.select('prediction','count').rdd.map(tuple)
-    metrics = RankingMetrics(predictionAndLabels)
+    metrics = RankingMetrics(scoreAndLabels)
     precision = metrics.precisionAt(500)
     print(precision)
     ###
