@@ -34,12 +34,11 @@ def main(spark, data_file, val_file, model_file):
  #   val_df = track_indexed.transform(val_df)
 
     # ALS Model 
-    als = ALS(maxIter=5, \
-             userCol="userNew", itemCol="trackNew", ratingCol="count",\
-             coldStartStrategy="drop")
+    #als = ALS(maxIter=5, \
+    #         userCol="userNew", itemCol="trackNew", ratingCol="count",\
+    #         coldStartStrategy="drop")
 
-    # Pipeline
-    pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
+    
     
     #paramGrid = ParamGridBuilder().addGrid(als.regParam, [0.1, 1]).build()
                                  # .addGrid(als.alpha, [0.01, 0.1, 1, 5, 10]) \
@@ -58,18 +57,20 @@ def main(spark, data_file, val_file, model_file):
                   als = ALS(maxIter=5, regParam = i, alpha = j, rank = k, \
                             userCol="userNew", itemCol="trackNew", ratingCol="count",\
                             coldStartStrategy="drop")
+                  # Pipeline
+                  pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
                   model = pipeline.fit(df)
                   val_predictions = model.transform(val_df)
                   rmse = evaluator.evaluate(val_predictions)
                   RMSE[rmse] = model
                   count += 1
-                  print(count)
-                  print(rmse)
+                  print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, RMSE: {rmse}")
+                  #print(rmse)
 
     best_RMSE = min(list(RMSE.keys()))
     bestmodel = RMSE[best_RMSE]
     bestmodel.write().overwrite().save(model_file)
-
+    print(f"Best RMSE: {best_RMSE}, with regParam: {bestmodel.getregParam()}, alpha: {bestmodel.getAlpha()}, rank: {bestmodel.getRank()}")
     print("model is complete... go sleep")
 
 
