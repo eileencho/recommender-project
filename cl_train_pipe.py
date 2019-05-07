@@ -19,9 +19,9 @@ from pyspark.ml.evaluation import RegressionEvaluator
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-   # df = df.sample(True, 0.01)
+    df = df.sample(True, 0.1)
     val_df = spark.read.parquet(val_file)
-   # val_df = df.sample(True, 0.01) 
+    val_df = df.sample(True, 0.1) 
     
     user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
@@ -49,7 +49,7 @@ def main(spark, data_file, val_file, model_file):
 
     evaluator = RegressionEvaluator(metricName = "rmse", labelCol = "count", predictionCol = "prediction")
 
-    RMSE = {}
+    PRECISIONS = {}
     count = 0
     for i in RegParam:
         for j in Alpha:
@@ -58,19 +58,23 @@ def main(spark, data_file, val_file, model_file):
                             userCol="userNew", itemCol="trackNew", ratingCol="count",\
                             coldStartStrategy="drop")
                   # Pipeline
-                  pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
+	       	  pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
                   model = pipeline.fit(df)
                   val_predictions = model.transform(val_df)
-                  rmse = evaluator.evaluate(val_predictions)
-                  RMSE[rmse] = model
+		  scoreAndLabels = val_predictions.select('prediction','count').rdd.map(tuple)
+    	          metrics = RankingMetrics(scoreAndLabels)
+    		  precision = metrics.precisionAt(500)
+		  PRECISIONS[precision] = model
+                 # rmse = evaluator.evaluate(val_predictions)
+                 # RMSE[rmse] = model
                   count += 1
-                  print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, RMSE: {rmse}")
+                  print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
                   #print(rmse)
 
-    best_RMSE = min(list(RMSE.keys()))
-    bestmodel = RMSE[best_RMSE]
+    best_precision = min(list(PRECISIONS.keys()))
+    bestmodel = PRECISIONS[best_precision]
     bestmodel.write().overwrite().save(model_file)
-    print(f"Best RMSE: {best_RMSE}, with regParam: {bestmodel.getregParam()}, alpha: {bestmodel.getAlpha()}, rank: {bestmodel.getRank()}")
+    print(f"Best precision: {best_precision}, with regParam: {bestmodel.getregParam()}, alpha: {bestmodel.getAlpha()}, rank: {bestmodel.getRank()}")
     print("model is complete... go sleep")
 
 
