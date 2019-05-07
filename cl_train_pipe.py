@@ -15,6 +15,7 @@ from pyspark.ml.feature import StringIndexer
 from pyspark.ml import Pipeline
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.mllib.evaluation import RankingMetrics
 
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
@@ -37,40 +38,38 @@ def main(spark, data_file, val_file, model_file):
     #als = ALS(maxIter=5, \
     #         userCol="userNew", itemCol="trackNew", ratingCol="count",\
     #         coldStartStrategy="drop")
-
-    
     
     #paramGrid = ParamGridBuilder().addGrid(als.regParam, [0.1, 1]).build()
                                  # .addGrid(als.alpha, [0.01, 0.1, 1, 5, 10]) \
                                  # .addGrid(als.rank, [5, 10, 20, 50, 100, 500, 1000]) \
+    
     RegParam = [0.001, 0.01, 0.1, 1, 10]
     Alpha = [0.1, 1,5,10, 100]
     Rank = [5,10,50,100,1000]
 
-    evaluator = RegressionEvaluator(metricName = "rmse", labelCol = "count", predictionCol = "prediction")
+    #evaluator = RegressionEvaluator(metricName = "rmse", labelCol = "count", predictionCol = "prediction")
 
     PRECISIONS = {}
     count = 0
     for i in RegParam:
         for j in Alpha:
             for k in Rank:
-                  als = ALS(maxIter=5, regParam = i, alpha = j, rank = k, \
-                            userCol="userNew", itemCol="trackNew", ratingCol="count",\
-                            coldStartStrategy="drop")
-                  # Pipeline
-	       	  pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
-                  model = pipeline.fit(df)
-                  val_predictions = model.transform(val_df)
-		  scoreAndLabels = val_predictions.select('prediction','count').rdd.map(tuple)
-    	          metrics = RankingMetrics(scoreAndLabels)
-    		  precision = metrics.precisionAt(500)
-		  PRECISIONS[precision] = model
-                 # rmse = evaluator.evaluate(val_predictions)
-                 # RMSE[rmse] = model
-                  count += 1
-                  print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
-                  #print(rmse)
-
+                als = ALS(maxIter=5, regParam = i, alpha = j, rank = k, \
+                          userCol="userNew", itemCol="trackNew", ratingCol="count",\
+                          coldStartStrategy="drop")
+                pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
+                model = pipeline.fit(df)
+                val_predictions = model.transform(val_df)
+                scoreAndLabels = val_predictions.select('prediction','count').rdd.map(tuple)
+                metrics = RankingMetrics(scoreAndLabels)
+                precision = metrics.precisionAt(500)
+                PRECISIONS[precision] = model
+                count += 1
+                print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
+                # rmse = evaluator.evaluate(val_predictions)
+                # RMSE[rmse] = model 
+                #print(rmse)
+    
     best_precision = min(list(PRECISIONS.keys()))
     bestmodel = PRECISIONS[best_precision]
     bestmodel.write().overwrite().save(model_file)
