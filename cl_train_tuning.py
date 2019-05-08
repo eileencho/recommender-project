@@ -20,7 +20,7 @@ from pyspark.mllib.evaluation import RankingMetrics
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-    df = df.sample(True, 0.01)
+    df = df.sample(True, 0.001)
     val_df = spark.read.parquet(val_file)
     val_df = df.sample(True, 0.01) 
     
@@ -29,20 +29,23 @@ def main(spark, data_file, val_file, model_file):
     
     RegParam = [0.001, 0.01] # 0.1, 1, 10]
     Alpha = [0.1, 1]#5,10, 100]
-    Rank = [5,10], #50,100,1000]
-
+    Rank = [5,10] #50,100,1000]
+    sc = spark.sparkContext
     PRECISIONS = {}
     count = 0
     for i in RegParam:
         for j in Alpha:
             for k in Rank:
+                print(f"i: {i}, j: {j}, k: {k}")
                 als = ALS(maxIter=5, regParam = i, alpha = j, rank = k, \
                           userCol="userNew", itemCol="trackNew", ratingCol="count",\
                           coldStartStrategy="drop")
                 pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
                 model = pipeline.fit(df)
                 val_predictions = model.transform(val_df)
+                print("scoring...")
                 scoreAndLabels = val_predictions.select('prediction','count').rdd
+                #sc = spark.sparkContext
                 scoreAndLabels = sc.parallelize(scoreAndLabels)
                 metrics = RankingMetrics(scoreAndLabels)
                 precision = metrics.precisionAt(500)
