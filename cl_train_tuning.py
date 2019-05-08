@@ -27,27 +27,9 @@ def main(spark, data_file, val_file, model_file):
     user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
     
- #   user_indexed = user_indexer.fit(df)
- #   df =user_indexed.transform(df)
- #   track_indexed = track_indexer.fit(df)
- #   df =track_indexed.transform(df)
- #   val_df = user_indexed.transform(val_df)
- #   val_df = track_indexed.transform(val_df)
-
-    # ALS Model 
-    #als = ALS(maxIter=5, \
-    #         userCol="userNew", itemCol="trackNew", ratingCol="count",\
-    #         coldStartStrategy="drop")
-    
-    #paramGrid = ParamGridBuilder().addGrid(als.regParam, [0.1, 1]).build()
-                                 # .addGrid(als.alpha, [0.01, 0.1, 1, 5, 10]) \
-                                 # .addGrid(als.rank, [5, 10, 20, 50, 100, 500, 1000]) \
-    
     RegParam = [0.001, 0.01] # 0.1, 1, 10]
     Alpha = [0.1, 1]#5,10, 100]
     Rank = [5,10], #50,100,1000]
-
-    #evaluator = RegressionEvaluator(metricName = "rmse", labelCol = "count", predictionCol = "prediction")
 
     PRECISIONS = {}
     count = 0
@@ -64,10 +46,10 @@ def main(spark, data_file, val_file, model_file):
                 scoreAndLabels = sc.parallelize(scoreAndLabels)
                 metrics = RankingMetrics(scoreAndLabels)
                 precision = metrics.precisionAt(500)
-		PRECISIONS[precision] = model
-        	count += 1
-		print(count)
-		print(precision)
+                PRECISIONS[precision] = model
+                count += 1
+                print(count)
+                print(precision)
         	#print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
 
 
