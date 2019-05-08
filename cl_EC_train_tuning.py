@@ -15,6 +15,8 @@ from pyspark.ml.feature import StringIndexer
 from pyspark.ml import Pipeline
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.sql import functions as F
+
 from pyspark.mllib.evaluation import RankingMetrics
 
 def main(spark, data_file, val_file, model_file):
@@ -30,8 +32,8 @@ def main(spark, data_file, val_file, model_file):
     indexers = pipeline.fit(df)
     df = indexers.transform(df)
     val_df = indexers.transform(val_df).select(["userNew","trackNew"])
-    groundTruth = new_df.groupby("userNew").agg(F.collect_list("trackNew").alias("truth")).collect()
-
+    groundTruth = val_df.groupby("userNew").agg(F.collect_list("trackNew").alias("truth"))
+    print("created ground truth df")
     RegParam = [0.001, 0.01] # 0.1, 1, 10]
     Alpha = [0.1, 1]#5,10, 100]
     Rank = [5,10] #50,100,1000]
@@ -46,16 +48,20 @@ def main(spark, data_file, val_file, model_file):
                           userCol="userNew", itemCol="trackNew", ratingCol="count",\
                           coldStartStrategy="drop")
                 alsmodel = als.fit(df)
+                print("fit model")
                 #val_predictions = model.transform(val_df)
                 #alsmodel = model.stages[-1]
                 rec = alsmodel.recommendForAllUsers(500)
+                print("got recs")
                 predictions = rec.join(groundTruth, rec.userNew==groundTruth.userNew, 'inner')
-                predictions.show(10)
+                print("start mapping...")
+                #predictions.show(10)
                 #print(rec.show(10))
                 #scoreAndLabels = val_predictions.rdd
                 #sc = spark.sparkContext
                 #scoreAndLabels = sc.parallelize(scoreAndLabels)
                 scoreAndLabels = predictions.select('recommendations','truth').rdd.map(tuple)
+                print("scoring")
                 metrics = RankingMetrics(scoreAndLabels)
                 precision = metrics.precisionAt(500)
                 PRECISIONS[precision] = model
@@ -65,11 +71,11 @@ def main(spark, data_file, val_file, model_file):
         	#print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
 
 
-    #best_precision = min(list(PRECISIONS.keys()))
-    #bestmodel = PRECISIONS[best_precision]
-    #bestmodel.write().overwrite().save(model_file)
-    #print(f"Best precision: {best_precision}, with regParam: {bestmodel.getregParam()}, alpha: {bestmodel.getAlpha()}, rank: {bestmodel.getRank()}")
-    #print("model is complete... go sleep")
+    best_precision = min(list(PRECISIONS.keys()))
+    bestmodel = PRECISIONS[best_precision]
+    bestmodel.write().overwrite().save(model_file)
+    print(f"Best precision: {best_precision}, with regParam: {bestmodel.getregParam()}, alpha: {bestmodel.getAlpha()}, rank: {bestmodel.getRank()}")
+    print("model is complete... go sleep")
 
 
 # Only enter this block if we're in main
