@@ -20,9 +20,9 @@ from pyspark.mllib.evaluation import RankingMetrics
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-    df = df.sample(True, 0.1)
+    df = df.sample(True, 0.01)
     val_df = spark.read.parquet(val_file)
-    val_df = df.sample(True, 0.1) 
+    val_df = df.sample(True, 0.01) 
     
     user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
@@ -43,9 +43,9 @@ def main(spark, data_file, val_file, model_file):
                                  # .addGrid(als.alpha, [0.01, 0.1, 1, 5, 10]) \
                                  # .addGrid(als.rank, [5, 10, 20, 50, 100, 500, 1000]) \
     
-    RegParam = [0.001, 0.01, 0.1, 1, 10]
-    Alpha = [0.1, 1,5,10, 100]
-    Rank = [5,10,50,100,1000]
+    RegParam = [0.001, 0.01] # 0.1, 1, 10]
+    Alpha = [0.1, 1]#5,10, 100]
+    Rank = [5,10], #50,100,1000]
 
     #evaluator = RegressionEvaluator(metricName = "rmse", labelCol = "count", predictionCol = "prediction")
 
@@ -64,18 +64,18 @@ def main(spark, data_file, val_file, model_file):
                 scoreAndLabels = sc.parallelize(scoreAndLabels)
                 metrics = RankingMetrics(scoreAndLabels)
                 precision = metrics.precisionAt(500)
-        		PRECISIONS[precision] = model
-        		count += 1
-        		print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
-                        # rmse = evaluator.evaluate(val_predictions)
-                        # RMSE[rmse] = model 
-                        #print(rmse)
-    
-    best_precision = min(list(PRECISIONS.keys()))
-    bestmodel = PRECISIONS[best_precision]
-    bestmodel.write().overwrite().save(model_file)
-    print(f"Best precision: {best_precision}, with regParam: {bestmodel.getregParam()}, alpha: {bestmodel.getAlpha()}, rank: {bestmodel.getRank()}")
-    print("model is complete... go sleep")
+		PRECISIONS[precision] = model
+        	count += 1
+		print(count)
+		print(precision)
+        	#print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
+
+
+    #best_precision = min(list(PRECISIONS.keys()))
+    #bestmodel = PRECISIONS[best_precision]
+    #bestmodel.write().overwrite().save(model_file)
+    #print(f"Best precision: {best_precision}, with regParam: {bestmodel.getregParam()}, alpha: {bestmodel.getAlpha()}, rank: {bestmodel.getRank()}")
+    #print("model is complete... go sleep")
 
 
 # Only enter this block if we're in main
