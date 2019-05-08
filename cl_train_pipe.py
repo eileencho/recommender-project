@@ -60,12 +60,13 @@ def main(spark, data_file, val_file, model_file):
                 pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
                 model = pipeline.fit(df)
                 val_predictions = model.transform(val_df)
-                scoreAndLabels = val_predictions.select('prediction','count').rdd.map(tuple)
-                metrics = RankingMetrics(scoreAndLabels)
-                precision = metrics.precisionAt(500)
-                PRECISIONS[precision] = model
-                count += 1
-                print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
+                scoreAndLabels = val_predictions.select('prediction','count').rdd
+		scoreAndLabels = sc.parallelize(scoreAndLabels)
+		metrics = RankingMetrics(scoreAndLabels)
+		precision = metrics.precisionAt(500)
+		PRECISIONS[precision] = model
+		count += 1
+		print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
                 # rmse = evaluator.evaluate(val_predictions)
                 # RMSE[rmse] = model 
                 #print(rmse)
