@@ -20,7 +20,7 @@ from pyspark.mllib.evaluation import RankingMetrics
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-    df = df.sample(True, 0.001)
+    df = df.sample(True, 0.0001)
     val_df = spark.read.parquet(val_file)
     val_df = df.sample(True, 0.01) 
     
@@ -42,11 +42,13 @@ def main(spark, data_file, val_file, model_file):
                           coldStartStrategy="drop")
                 pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
                 model = pipeline.fit(df)
-                val_predictions = model.transform(val_df)
-                print("scoring...")
-                scoreAndLabels = val_predictions.select('prediction','count').rdd
+                #val_predictions = model.transform(val_df)
+                alsmodel = model.stages[-1]
+                rec = alsmodel.recommendForAllUsers(500)
+                print(rec.show(10))
+                #scoreAndLabels = val_predictions.rdd
                 #sc = spark.sparkContext
-                scoreAndLabels = sc.parallelize(scoreAndLabels)
+                #scoreAndLabels = sc.parallelize(scoreAndLabels)
                 metrics = RankingMetrics(scoreAndLabels)
                 precision = metrics.precisionAt(500)
                 PRECISIONS[precision] = model
