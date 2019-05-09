@@ -22,12 +22,11 @@ from pyspark.mllib.evaluation import RankingMetrics
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-    df = df.sample(True, 0.001)
     df.createOrReplaceTempView("df")
     val_df = spark.read.parquet(val_file)
     val_df.createOrReplaceTempView("val_df")
-    #grab only the users present in training sample
-    val_df = spark.sql("SELECT val_df.user_id, val_df.track_id, val_df.count FROM val_df INNER JOIN df on val_df.user_id=df.user_id")
+    #grab only the users present in validation sample
+    df = spark.sql("SELECT * FROM df WHERE user_id IN (SELECT user_id FROM val_df)")
     #create and store indexer info
     user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
@@ -41,8 +40,8 @@ def main(spark, data_file, val_file, model_file):
 
     groundTruth = val_df.groupby("userNew").agg(F.collect_list("trackNew").alias("truth")).cache()
     print("created ground truth df")
-    RegParam = [0.001, 1, 10] # 0.1, 1, 10]
-    Alpha = [0.1, 5, 10 , 40]#5,10, 100]
+    RegParam = [0.0001, 0.1, 10] # 0.1, 1, 10]
+    Alpha = [0.001, 0.01, 15 , 100]#5,10, 100]
     Rank = [10,50,100]
 
     PRECISIONS = {}
