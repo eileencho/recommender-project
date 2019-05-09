@@ -60,7 +60,7 @@ def main(spark, data_file, val_file, model_file):
                 print("got recs")
                 predictions = rec.join(groundTruth, rec.userNew==groundTruth.userNew, 'inner')
                 print("start mapping...")
-                scoreAndLabels = predictions.select('recommendations.trackNew','truth').rdd.map(tuple)
+                scoreAndLabels = predictions.select('recommendations.trackNew','truth').rdd.map(tuple).repartition(1000)
                 print("scoring...")
                 metrics = RankingMetrics(scoreAndLabels)
                 print("precision...")
