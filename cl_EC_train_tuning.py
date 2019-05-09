@@ -22,7 +22,7 @@ from pyspark.mllib.evaluation import RankingMetrics
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-    df = df.sample(True, 0.01)
+    df = df.sample(True, 0.001)
     df.createOrReplaceTempView("df")
     val_df = spark.read.parquet(val_file)
     val_df.createOrReplaceTempView("val_df")
@@ -41,19 +41,20 @@ def main(spark, data_file, val_file, model_file):
 
     groundTruth = val_df.groupby("userNew").agg(F.collect_list("trackNew").alias("truth")).cache()
     print("created ground truth df")
-    RegParam = [0.001, 0.01] # 0.1, 1, 10]
-    Alpha = [0.1, 1]#5,10, 100]
-    Rank = [5,10] #50,100,1000]
+    RegParam = [0.001, 1, 10] # 0.1, 1, 10]
+    Alpha = [0.1, 5, 10 , 40]#5,10, 100]
+    Rank = [10,50,100]
 
     PRECISIONS = {}
     count = 0
+    total = len(RegParam)*len(Alpha)*len(Rank)
     for i in RegParam:
         for j in Alpha:
             for k in Rank:
-                print(f"i: {i}, j: {j}, k: {k}")
+                print(f"regParam: {i}, Alpha: {j}, Rank: {k}")
                 als = ALS(maxIter=5, regParam = i, alpha = j, rank = k, \
                           userCol="userNew", itemCol="trackNew", ratingCol="count",\
-                          coldStartStrategy="drop")
+                          coldStartStrategy="drop",implicitPrefs=True)
                 alsmodel = als.fit(df)
                 print("fit model")
                 rec = alsmodel.recommendForAllUsers(500)
@@ -67,7 +68,7 @@ def main(spark, data_file, val_file, model_file):
                 precision = metrics.precisionAt(500)
                 PRECISIONS[precision] = alsmodel
                 count += 1
-                print(count)
+                print(f"finished {count} of {total}")
                 print(precision)
         	#print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
 
