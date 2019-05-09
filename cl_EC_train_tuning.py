@@ -22,11 +22,12 @@ from pyspark.mllib.evaluation import RankingMetrics
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-    df = df.sample(True, 0.01)
+    df = df.sample(True, 0.001)
+    df.createOrReplaceTempView("df")
     val_df = spark.read.parquet(val_file)
+    val_df.createOrReplaceTempView("val_df")
     #grab only the users present in training sample
-    val_df = df.join(val_df, df.user_id==val_df.user_id).select(val_df.user_id,val_df.track_id, val_df.count)
-    
+    val_df = spark.sql("SELECT val_df.user_id, val_df.track_id, val_df.count FROM val_df INNER JOIN df on val_df.user_id=df.user_id")
     #create and store indexer info
     user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
@@ -68,8 +69,8 @@ def main(spark, data_file, val_file, model_file):
                 #scoreAndLabels = sc.parallelize(scoreAndLabels)
                 scoreAndLabels = predictions.select('recommendations','truth').rdd.map(tuple)
                 metrics = RankingMetrics(scoreAndLabels)
-                print("scoring")
-                precision = metrics.precisionAt(500)
+                print("scoring...")
+                precision = metrics.precisionAt(3)
                 PRECISIONS[precision] = model
                 count += 1
                 print(count)
