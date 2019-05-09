@@ -22,7 +22,7 @@ from pyspark.mllib.evaluation import RankingMetrics
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-    df = df.sample(True, 0.001)
+    df = df.sample(True, 0.01)
     df.createOrReplaceTempView("df")
     val_df = spark.read.parquet(val_file)
     val_df.createOrReplaceTempView("val_df")
@@ -36,10 +36,10 @@ def main(spark, data_file, val_file, model_file):
     indexers.write().overwrite().save("./final/indexers")
 
     #transform
-    df = indexers.transform(df)
+    df = indexers.transform(df).cache()
     val_df = indexers.transform(val_df).select(["userNew","trackNew"])
 
-    groundTruth = val_df.groupby("userNew").agg(F.collect_list("trackNew").alias("truth"))
+    groundTruth = val_df.groupby("userNew").agg(F.collect_list("trackNew").alias("truth")).cache()
     print("created ground truth df")
     RegParam = [0.001, 0.01] # 0.1, 1, 10]
     Alpha = [0.1, 1]#5,10, 100]
@@ -56,33 +56,26 @@ def main(spark, data_file, val_file, model_file):
                           coldStartStrategy="drop")
                 alsmodel = als.fit(df)
                 print("fit model")
-                #val_predictions = model.transform(val_df)
-                #alsmodel = model.stages[-1]
                 rec = alsmodel.recommendForAllUsers(500)
                 print("got recs")
                 predictions = rec.join(groundTruth, rec.userNew==groundTruth.userNew, 'inner')
                 print("start mapping...")
-                #predictions.show(10)
-                #print(rec.show(10))
-                #scoreAndLabels = val_predictions.rdd
-                #sc = spark.sparkContext
-                #scoreAndLabels = sc.parallelize(scoreAndLabels)
                 scoreAndLabels = predictions.select('recommendations.trackNew','truth').rdd.map(tuple)
                 print("scoring...")
                 metrics = RankingMetrics(scoreAndLabels)
                 print("precision...")
                 precision = metrics.precisionAt(500)
-                PRECISIONS[precision] = model
+                PRECISIONS[precision] = alsmodel
                 count += 1
                 print(count)
                 print(precision)
         	#print(f"count: {count}, regParam: {i}, alpha: {j}, rank: {k}, PRECISIONS: {precision}")
 
 
-    best_precision = min(list(PRECISIONS.keys()))
+    best_precision = max(list(PRECISIONS.keys()))
     bestmodel = PRECISIONS[best_precision]
     bestmodel.write().overwrite().save(model_file)
-    print(f"Best precision: {best_precision}, with regParam: {bestmodel.getregParam()}, alpha: {bestmodel.getAlpha()}, rank: {bestmodel.getRank()}")
+    print(f"Best precision: {best_precision}, with regParam: {bestmodel.getRegParam()}, alpha: {bestmodel.getAlpha()}, rank: {bestmodel.getRank()}")
     print("model is complete... go sleep")
 
 
