@@ -24,14 +24,20 @@ def main(spark, data_file, val_file, model_file):
     df = spark.read.parquet(data_file)
     df = df.sample(True, 0.01)
     val_df = spark.read.parquet(val_file)
-    val_df = df.sample(True, 0.01) 
+    #grab only the users present in training sample
+    val_df = df.join(val_df, df.user_id==val_df.user_id).select(val_df.user_id,val_df.track_id, val_df.count)
     
+    #create and store indexer info
     user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
     pipeline = Pipeline(stages = [user_indexer, track_indexer]) 
     indexers = pipeline.fit(df)
+    indexers.write().overwrite().save("./final/indexers")
+
+    #transform
     df = indexers.transform(df)
     val_df = indexers.transform(val_df).select(["userNew","trackNew"])
+
     groundTruth = val_df.groupby("userNew").agg(F.collect_list("trackNew").alias("truth"))
     print("created ground truth df")
     RegParam = [0.001, 0.01] # 0.1, 1, 10]
@@ -61,8 +67,8 @@ def main(spark, data_file, val_file, model_file):
                 #sc = spark.sparkContext
                 #scoreAndLabels = sc.parallelize(scoreAndLabels)
                 scoreAndLabels = predictions.select('recommendations','truth').rdd.map(tuple)
-                print("scoring")
                 metrics = RankingMetrics(scoreAndLabels)
+                print("scoring")
                 precision = metrics.precisionAt(500)
                 PRECISIONS[precision] = model
                 count += 1
