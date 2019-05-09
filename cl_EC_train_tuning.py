@@ -44,7 +44,7 @@ def main(spark, data_file, val_file, model_file):
     RegParam = [0.001, 0.01] # 0.1, 1, 10]
     Alpha = [0.1, 1]#5,10, 100]
     Rank = [5,10] #50,100,1000]
-    sc = spark.sparkContext
+
     PRECISIONS = {}
     count = 0
     for i in RegParam:
@@ -67,10 +67,11 @@ def main(spark, data_file, val_file, model_file):
                 #scoreAndLabels = val_predictions.rdd
                 #sc = spark.sparkContext
                 #scoreAndLabels = sc.parallelize(scoreAndLabels)
-                scoreAndLabels = predictions.select('recommendations','truth').rdd.map(tuple)
-                metrics = RankingMetrics(scoreAndLabels)
+                scoreAndLabels = predictions.select('recommendations.trackNew','truth').rdd.map(tuple)
                 print("scoring...")
-                precision = metrics.precisionAt(3)
+                metrics = RankingMetrics(scoreAndLabels)
+                print("precision...")
+                precision = metrics.precisionAt(500)
                 PRECISIONS[precision] = model
                 count += 1
                 print(count)
