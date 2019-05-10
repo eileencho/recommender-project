@@ -39,10 +39,15 @@ def main(spark, model_file, data_file):
     model = PipelineModel.load(model_file)
     predictions = model.transform(df)
     #predictions_sorted = predictions.orderBy(desc('count')).limit(500).collect()
+    print("smile")
 
-
-    scoreAndLabels = predictions.select('prediction','count').rdd.map(tuple)
+    scoreAndLabels = predictions.select('prediction','count')
+    print("smile again")
+    scoreAndLabels.show(5)
+    scoreAndLabels = scoreAndLabels.rdd 
+    print("I am smiling")
     metrics = RankingMetrics(scoreAndLabels)
+
     precision = metrics.precisionAt(500)
     print(precision)
     ###
