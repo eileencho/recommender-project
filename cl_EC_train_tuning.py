@@ -22,15 +22,14 @@ from pyspark.mllib.evaluation import RankingMetrics
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-<<<<<<< HEAD
     df = df.sample(True, 0.1)
-=======
->>>>>>> 016ae2039b66be72cf4ccfc0868b880b6473b982
     df.createOrReplaceTempView("df")
     val_df = spark.read.parquet(val_file)
     val_df.createOrReplaceTempView("val_df")
+    
     #grab only the users present in validation sample
     df = spark.sql("SELECT * FROM df WHERE user_id IN (SELECT user_id FROM val_df)")
+    
     #create and store indexer info
     user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
@@ -44,15 +43,10 @@ def main(spark, data_file, val_file, model_file):
 
     groundTruth = val_df.groupby("userNew").agg(F.collect_list("trackNew").alias("truth")).cache()
     print("created ground truth df")
-<<<<<<< HEAD
+    
     RegParam = [0.001, 0.01, 1, 10] 
-    Alpha = [0.001, 0.01, 0.1, 1, 10]
+    Alpha = [0.001, 0.01, 0.1, 1]
     Rank = [5, 10, 50 ,100]
-=======
-    RegParam = [0.0001, 0.1, 10] # 0.1, 1, 10]
-    Alpha = [0.001, 0.01, 15 , 100]#5,10, 100]
-    Rank = [10,50,100]
->>>>>>> 016ae2039b66be72cf4ccfc0868b880b6473b982
 
     PRECISIONS = {}
     count = 0
@@ -60,7 +54,7 @@ def main(spark, data_file, val_file, model_file):
     for i in RegParam:
         for j in Alpha:
             for k in Rank:
-		print(f"regParam: {i}, Alpha: {j}, Rank: {k}")
+                print(f"regParam: {i}, Alpha: {j}, Rank: {k}")
                 als = ALS(maxIter=5, regParam = i, alpha = j, rank = k, \
                           userCol="userNew", itemCol="trackNew", ratingCol="count",\
                           coldStartStrategy="drop",implicitPrefs=True)
