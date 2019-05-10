@@ -20,9 +20,9 @@ from pyspark.mllib.evaluation import RankingMetrics
 def main(spark, data_file, val_file, model_file):
     # Load the dataframe
     df = spark.read.parquet(data_file)
-    df = df.sample(True, 0.1)
+    #df = df.sample(True, 0.1)
     val_df = spark.read.parquet(val_file)
-    val_df = df.sample(True, 0.1) 
+    #val_df = df.sample(True, 0.1) 
     
     user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
     track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
@@ -33,8 +33,9 @@ def main(spark, data_file, val_file, model_file):
     
     pipeline = Pipeline(stages = [user_indexer, track_indexer, als]) 
     
-    model = pipeline.fit(df)
-    
+    base_model = pipeline.fit(df)
+    base_model.write().overwrite().save(model_file)
+
     #val_predictions = model.transform(val_df)
     #scoreAndLabels = val_predictions.select('prediction','count').rdd
     #scoreAndLabels = sc.parallelize(scoreAndLabels)
@@ -47,8 +48,8 @@ def main(spark, data_file, val_file, model_file):
                         # RMSE[rmse] = model 
                         #print(rmse)
                         
-    prediction = model.transform(val_df)
-    prediction.show()
+    predictions = base_model.transform(val_df)
+    predictions.show()
     #best_precision = min(list(PRECISIONS.keys()))
     #bestmodel = PRECISIONS[best_precision]
     #bestmodel.write().overwrite().save(model_file)
