@@ -12,6 +12,7 @@ from pyspark.ml.recommendation import ALS, ALSModel
 from pyspark.ml.feature import StringIndexer, StringIndexerModel
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.mllib.evaluation import RankingMetrics
+from pyspark.sql import functions as F
 
 def main(spark, test_file, index_file, model_file):
     # Load the dataframe
