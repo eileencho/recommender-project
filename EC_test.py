@@ -49,11 +49,11 @@ if __name__ == "__main__":
     # Get the filename from the command line
     test_file = sys.argv[1]
 
-    #validation file
+    #indexer file
 
     index_file = sys.argv[2]
 
-    # And the location to store the trained model
+    # And the location of trained model
     model_file = sys.argv[3]
 
 
