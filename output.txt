@@ -1,0 +1,167 @@
+created ground truth df
+regParam: 0.1, Alpha: 0.001, Rank: 15
+finished 1 of 80
+0.005656873558608243
+regParam: 0.1, Alpha: 0.001, Rank: 100
+finished 2 of 80
+0.006325278251278457
+regParam: 0.1, Alpha: 0.001, Rank: 300
+finished 3 of 80
+0.006497142284167251
+regParam: 0.1, Alpha: 0.001, Rank: 500
+finished 4 of 80
+0.00639105585079716
+regParam: 0.1, Alpha: 0.01, Rank: 15
+finished 5 of 80
+0.005603328988268322
+regParam: 0.1, Alpha: 0.01, Rank: 100
+finished 6 of 80
+0.006265717437080114
+regParam: 0.1, Alpha: 0.01, Rank: 300
+finished 7 of 80
+0.006471071894114105
+regParam: 0.1, Alpha: 0.01, Rank: 500
+finished 8 of 80
+0.00638223202647147
+regParam: 0.1, Alpha: 15, Rank: 15
+finished 9 of 80
+0.0054517196430361944
+regParam: 0.1, Alpha: 15, Rank: 100
+finished 10 of 80
+0.007151107991577253
+regParam: 0.1, Alpha: 15, Rank: 300
+finished 11 of 80
+0.0074186303018149
+regParam: 0.1, Alpha: 15, Rank: 500
+finished 12 of 80
+0.007031384738794741
+regParam: 0.1, Alpha: 45, Rank: 15
+finished 13 of 80
+0.0058387646645944
+regParam: 0.1, Alpha: 45, Rank: 100
+finished 14 of 80
+0.007544971422841673
+regParam: 0.1, Alpha: 45, Rank: 300
+finished 15 of 80
+0.007384738794745819
+regParam: 0.1, Alpha: 45, Rank: 500
+finished 16 of 80
+0.006910057154316651
+regParam: 0.1, Alpha: 100, Rank: 15
+finished 17 of 80
+0.0059296099468565105
+regParam: 0.1, Alpha: 100, Rank: 100
+finished 18 of 80
+0.0075237140278752645
+regParam: 0.1, Alpha: 100, Rank: 300
+finished 19 of 80
+0.007197834152210969
+regParam: 0.1, Alpha: 100, Rank: 500
+finished 20 of 80
+0.006726962799558809
+regParam: 10, Alpha: 0.001, Rank: 15
+finished 21 of 80
+5.374511180186499e-05
+regParam: 10, Alpha: 0.001, Rank: 100
+finished 22 of 80
+0.00013055249172766486
+regParam: 10, Alpha: 0.001, Rank: 300
+finished 23 of 80
+0.0001963300912463651
+regParam: 10, Alpha: 0.001, Rank: 500
+finished 24 of 80
+0.00022621076907650665
+regParam: 10, Alpha: 0.01, Rank: 15
+finished 25 of 80
+0.0002990073197633607
+regParam: 10, Alpha: 0.01, Rank: 100
+finished 26 of 80
+0.0003000100270730968
+regParam: 10, Alpha: 0.01, Rank: 300
+finished 27 of 80
+0.0002984056953775192
+regParam: 10, Alpha: 0.01, Rank: 500
+finished 28 of 80
+0.00029760352952972987
+regParam: 10, Alpha: 15, Rank: 15
+finished 29 of 80
+0.004940138373608745
+regParam: 10, Alpha: 15, Rank: 100
+finished 30 of 80
+0.006339717236538657
+regParam: 10, Alpha: 15, Rank: 300
+finished 31 of 80
+0.007127845181991376
+regParam: 10, Alpha: 15, Rank: 500
+finished 32 of 80
+0.0073269828537050035
+regParam: 10, Alpha: 45, Rank: 15
+finished 33 of 80
+0.005818911059861625
+regParam: 10, Alpha: 45, Rank: 100
+finished 34 of 80
+0.00785801664494135
+regParam: 10, Alpha: 45, Rank: 300
+finished 35 of 80
+0.00819492630101274
+regParam: 10, Alpha: 45, Rank: 500
+finished 36 of 80
+0.008080617667702796
+regParam: 10, Alpha: 100, Rank: 15
+finished 37 of 80
+0.006147999598917077
+regParam: 10, Alpha: 100, Rank: 100
+finished 38 of 80
+0.008191717637621564
+regParam: 10, Alpha: 100, Rank: 300
+finished 39 of 80
+0.008288779705204054
+regParam: 10, Alpha: 100, Rank: 500
+finished 40 of 80
+0.008150807179384333
+regParam: 15, Alpha: 0.001, Rank: 15
+finished 41 of 80
+0.000940739997994586
+regParam: 15, Alpha: 0.001, Rank: 100
+finished 42 of 80
+0.0009407399979945858
+regParam: 15, Alpha: 0.001, Rank: 300
+finished 43 of 80
+0.0009407399979945856
+regParam: 15, Alpha: 0.001, Rank: 500
+finished 44 of 80
+0.0009407399979945861
+regParam: 15, Alpha: 0.01, Rank: 15
+finished 45 of 80
+0.0007909355259199828
+regParam: 15, Alpha: 0.01, Rank: 100
+finished 46 of 80
+0.0007873257796049332
+regParam: 15, Alpha: 0.01, Rank: 300
+finished 47 of 80
+0.0007967512283164546
+regParam: 15, Alpha: 0.01, Rank: 500
+finished 48 of 80
+0.0007895317356863527
+regParam: 15, Alpha: 15, Rank: 15
+finished 49 of 80
+0.004572545873859418
+regParam: 15, Alpha: 15, Rank: 100
+finished 50 of 80
+0.005771783816304019
+regParam: 15, Alpha: 15, Rank: 300
+finished 51 of 80
+0.0064542264113105425
+regParam: 15, Alpha: 15, Rank: 500
+finished 52 of 80
+0.00670490323874462
+regParam: 15, Alpha: 45, Rank: 15
+finished 53 of 80
+0.0056658979243958685
+regParam: 15, Alpha: 45, Rank: 100
+finished 54 of 80
+0.007726461445903943
+regParam: 15, Alpha: 45, Rank: 300
+finished 55 of 80
+0.008161034793943653
+regParam: 15, Alpha: 45, Rank: 500
