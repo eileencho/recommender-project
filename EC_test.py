@@ -13,6 +13,7 @@ from pyspark.ml.feature import StringIndexer, StringIndexerModel
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.mllib.evaluation import RankingMetrics
 from pyspark.sql import functions as F
+from pyspark.sql import Row
 
 def main(spark, test_file, index_file, model_file):
     # Load the dataframe
@@ -28,7 +29,7 @@ def main(spark, test_file, index_file, model_file):
     alsmodel = ALSModel.load(model_file)
     rec = alsmodel.recommendForUserSubset(testUsers,500)
     print("created recs")
-    predictions = rec.join(groundTruth, rec.userNew==groundTruth.userNew, 'left')
+    predictions = rec.join(groundTruth, rec.userNew==groundTruth.userNew, 'inner')
                 
     scoreAndLabels = predictions.select('recommendations.trackNew','truth').rdd.map(tuple)
     metrics = RankingMetrics(scoreAndLabels)
@@ -45,7 +46,7 @@ def main(spark, test_file, index_file, model_file):
 if __name__ == "__main__":
 
     # Create the spark session object
-    spark = SparkSession.builder.appName('test').getOrCreate()
+    spark = SparkSession.builder.appName('cf_test').getOrCreate()
 
     # Get the filename from the command line
     test_file = sys.argv[1]

@@ -73,7 +73,7 @@ def main(spark, data_file, val_file, test_file, model_file, tuning = False):
 
                 rec = alsmodel.recommendForUserSubset(val_users,500)
 
-                predictions = rec.join(groundTruth, rec.userNew==groundTruth.userNew, 'left')
+                predictions = rec.join(groundTruth, rec.userNew==groundTruth.userNew, 'inner')
                 
                 scoreAndLabels = predictions.select('recommendations.trackNew','truth').rdd.map(tuple).repartition(1000)
 
@@ -101,7 +101,7 @@ def main(spark, data_file, val_file, test_file, model_file, tuning = False):
 if __name__ == "__main__":
 
     # Create the spark session object
-    spark = SparkSession.builder.appName('training').getOrCreate()
+    spark = SparkSession.builder.appName('cf_training').getOrCreate()
 
     # Get the filename from the command line
     data_file = sys.argv[1]
