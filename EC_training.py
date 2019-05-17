@@ -101,30 +101,33 @@ def main(spark, root, data_file, val_file, test_file, model_file, tuning = False
 
 # Only enter this block if we're in main
 if __name__ == "__main__":
-
+    print("starting main")
     # Create the spark session object
     spark = SparkSession.builder.appName('cfTraining').getOrCreate()
+    print("created spark")
+    #get root
+    root = sys.argv[1]
 
     # Get the filename from the command line
-    data_file = sys.argv[1]
+    data_file = sys.argv[2]
 
     #validation file
 
-    val_file = sys.argv[2]
+    val_file = sys.argv[3]
 
     #test file
 
-    test_file = sys.argv[3]
+    test_file = sys.argv[4]
 
     # And the location to store the trained model
-    model_file = sys.argv[4]
-
+    model_file = sys.argv[5]
+    
     # try:
     #     tuning = sys.argv[5]
     # except:
     #     tuning = True
 
 
-
+    print("calling training function")
     # Call our main routine
-    main(spark, data_file, val_file, test_file, model_file, tuning=True)
+    main(spark, root, data_file, val_file, test_file, model_file, tuning=True)
