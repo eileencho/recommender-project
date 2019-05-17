@@ -14,15 +14,15 @@ from pyspark.ml import Pipeline, PipelineModel
 from pyspark.sql import functions as F
 from pyspark.mllib.evaluation import RankingMetrics
 
-def main(spark, data_file, val_file, test_file, model_file, tuning = False):
+def main(spark, root, data_file, val_file, test_file, model_file, tuning = False):
     # Load the dataframe
-    df = spark.read.parquet(data_file).
+    df = spark.read.parquet(root+data_file)
     df.createOrReplaceTempView("df")
-    val_df = spark.read.parquet(val_file)
+    val_df = spark.read.parquet(root+val_file)
     val_df.createOrReplaceTempView("val_df")
 
     #we load in the test file just to be able to grab test_users
-    test = spark.read.parquet(test_file)
+    test = spark.read.parquet(root+test_file)
     test.createOrReplaceTempView("test")
     #grab only the users present in validation and test sample because whole training dataset is too large
     df = spark.sql("SELECT * FROM df WHERE user_id IN ((SELECT user_id FROM val_df) UNION (SELECT user_id FROM test))")
@@ -91,7 +91,7 @@ def main(spark, data_file, val_file, test_file, model_file, tuning = False):
     best_map = max(list(PRECISIONS.keys()))
     best_precision,bestmodel,bestALS = PRECISIONS[best_precision]
     bestmodel.write().overwrite().save(model_file)
-    bestALS.save("./final/alsFile")
+    #bestALS.save("./final/alsFile")
     print(f"best MAP: {best_map}, with precision: {best_precision}, regParam: {bestALS.getRegParam}, alpha: {bestALS.getAlpha}, rank: {bestALS.getRank}")
 
     
@@ -103,7 +103,7 @@ def main(spark, data_file, val_file, test_file, model_file, tuning = False):
 if __name__ == "__main__":
 
     # Create the spark session object
-    spark = SparkSession.builder.appName('cf_training').getOrCreate()
+    spark = SparkSession.builder.appName('cfTraining').getOrCreate()
 
     # Get the filename from the command line
     data_file = sys.argv[1]
