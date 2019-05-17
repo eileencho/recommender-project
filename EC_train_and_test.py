@@ -90,7 +90,7 @@ def main(spark, data_file, val_file, test_file, model_file, tuning = False):
 
                 print(f"precision at: {precision}, MAP: {map_calc}")
     best_map = max(list(PRECISIONS.keys()))
-    best_precision,bestmodel,bestALS = PRECISIONS[best_precision]
+    best_precision,bestmodel,bestALS = PRECISIONS[best_map]
     bestmodel.write().overwrite().save(model_file)
     bestALS.save("./final/alsFile")
     print(f"best MAP: {best_map}, with precision: {best_precision}, regParam: {bestALS.getRegParam}, alpha: {bestALS.getAlpha}, rank: {bestALS.getRank}")
