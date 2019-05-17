@@ -87,11 +87,11 @@ def main(spark, data_file, val_file, test_file, model_file, tuning = False):
                 count += 1
                 print(f"finished {count} of {total}")
 
-                print(f"precisionat: {precision}, MAP: {map_calc}")
+                print(f"precision at: {precision}, MAP: {map_calc}")
     best_map = max(list(PRECISIONS.keys()))
     best_precision,bestmodel,bestALS = PRECISIONS[best_precision]
     bestmodel.write().overwrite().save(model_file)
-    #bestALS.save("./final/alsFile")
+    bestALS.save("./final/alsFile")
     print(f"best MAP: {best_map}, with precision: {best_precision}, regParam: {bestALS.getRegParam}, alpha: {bestALS.getAlpha}, rank: {bestALS.getRank}")
 
     
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     try:
         tuning = sys.argv[5]
     except:
-        tuning = False
+        tuning = True
 
 
 
