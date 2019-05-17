@@ -50,9 +50,9 @@ def main(spark, data_file, val_file, test_file, model_file, tuning = False):
 
     #hyperparameter tuning takes very long, so default just produces a model, set 'tuning' to True to tune
     if tuning:
-        RegParam = [0.001, 0.1, 10,15,20]
-        Alpha = [0.001,0.01,15,45,100]
-        Rank = [15,100,300,500]
+        RegParam = [0.01, 0.1, 1, 10]
+        Alpha = [0.1, 1, 10, 100]
+        Rank = [100]
     else:
         RegParam = [10]
         Alpha = [100]
@@ -71,7 +71,8 @@ def main(spark, data_file, val_file, test_file, model_file, tuning = False):
                           coldStartStrategy="drop",implicitPrefs=True)
                 alsmodel = als.fit(df)
 
-                rec = alsmodel.recommendForUserSubset(val_users,500)
+                #rec = alsmodel.recommendForUserSubset(val_users,500)
+                rec = alsmodel.recommendForAllUsers(500)
 
                 predictions = rec.join(groundTruth, rec.userNew==groundTruth.userNew, 'inner')
                 
@@ -80,17 +81,18 @@ def main(spark, data_file, val_file, test_file, model_file, tuning = False):
                 metrics = RankingMetrics(scoreAndLabels)
 
                 precision = metrics.precisionAt(500)
+                map_calc = metrics.meanAveragePrecision
 
-                PRECISIONS[precision] = [alsmodel,als]
+                PRECISIONS[map_calc] = [precision,alsmodel,als]
                 count += 1
                 print(f"finished {count} of {total}")
 
-                print(precision)
-    best_precision = max(list(Precisions.keys()))
-    bestmodel,bestALS = PRECISIONS[best_precision]
+                print(f"precisionat: {precision}, MAP: {map_calc}")
+    best_map = max(list(PRECISIONS.keys()))
+    best_precision,bestmodel,bestALS = PRECISIONS[best_precision]
     bestmodel.write().overwrite().save(model_file)
-    bestALS.save("./final/alsFile")
-    print(f"best precision: {best_precision}, regParam: {bestALS.getRegParam}, alpha: {bestALS.getAlpha}, rank: {bestALS.getRank}")
+    #bestALS.save("./final/alsFile")
+    print(f"best MAP: {best_map}, with precision: {best_precision}, regParam: {bestALS.getRegParam}, alpha: {bestALS.getAlpha}, rank: {bestALS.getRank}")
 
     
 
