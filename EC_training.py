@@ -119,12 +119,12 @@ if __name__ == "__main__":
     # And the location to store the trained model
     model_file = sys.argv[4]
 
-    try:
-        tuning = sys.argv[5]
-    except:
-        tuning = True
+    # try:
+    #     tuning = sys.argv[5]
+    # except:
+    #     tuning = True
 
 
 
     # Call our main routine
-    main(spark, data_file, val_file, test_file, model_file, tuning)
+    main(spark, data_file, val_file, test_file, model_file, tuning=True)
