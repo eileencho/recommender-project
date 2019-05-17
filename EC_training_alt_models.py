@@ -13,12 +13,13 @@ from pyspark.ml.feature import StringIndexer, StringIndexerModel
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.sql import functions as F
 from pyspark.mllib.evaluation import RankingMetrics
+from pyspark.sql.functions import col, log
 
 def main(spark, root, data_file, val_file, test_file, model_file1, model_file2, model_file3, model_file4, tuning = False):
     # Load the dataframe
     df = spark.read.parquet(root+data_file)
     
-     df.createOrReplaceTempView("df")
+    df.createOrReplaceTempView("df")
     val_df = spark.read.parquet(root+val_file)
     val_df.createOrReplaceTempView("val_df")
 
@@ -33,20 +34,35 @@ def main(spark, root, data_file, val_file, test_file, model_file1, model_file2, 
     PRECISIONS = {}
     models = []
     count = 0
-    total = len(RegParam)*len(Alpha)*len(Rank)
+    #total = len(RegParam)*len(Alpha)*len(Rank)
     
+    df_orig = df
+    #df_log = df
+    #df_drop1 = df
+    #df_drop2 = df
+
+
+    temp = df.filter("count>1")
+    df_drop1 = temp.withColumnRenamed("count","modcounts")
+
+    temp = df.filter("count>2")
+    df_drop2 = temp.withColumnRenamed("count","modcounts")
     
-    df_log = df
-    df_drop1 = df
-    df_drop2 = df
+    df_log = df.withColumn("modcounts",log("count"))
+    #df2 = df.withColumn("modcounts", log("count"))
+    #df_drop1.modcounts = df.modcounts[df.modcounts > 0]
+    #df_drop2.modcounts = df.modcounts[df.modcounts > 2]
     
-    df_log.count = F.log(df_log(count))
-    df_drop1.count = df.count[df.count > 1]
-    df_drop2.count = df.count[df.count > 2]
+
     
-    data_frames = [df, df_log, df_drop1, df_drop2]
+
+    #df_log.select("count") = F.log(df_log.select("count")
+    #df_drop1.select("count") = df.select("count")[df.select("count") > 1]
+    #df_drop2.select("count") = df.count[df.select("count") > 2]
     
-    for df in data_frames:
+    data_frames = [df_orig, df_log, df_drop1, df_drop2]
+    
+    for alt_df in data_frames:
         
        
         try:
@@ -57,11 +73,11 @@ def main(spark, root, data_file, val_file, test_file, model_file1, model_file2, 
             user_indexer  = StringIndexer(inputCol = "user_id", outputCol = "userNew", handleInvalid = "skip")
             track_indexer = StringIndexer(inputCol = "track_id", outputCol = "trackNew", handleInvalid = "skip")
             pipeline = Pipeline(stages = [user_indexer, track_indexer]) 
-            indexers = pipeline.fit(df)
+            indexers = pipeline.fit(alt_df)
             indexers.write().overwrite().save("./final/indexers_all")
             print("saved indexers")
         #transform
-        df = indexers.transform(df).cache()
+        alt_df = indexers.transform(alt_df).cache()
         print("transformed df")
         val_df = indexers.transform(val_df).select(["userNew","trackNew"]).repartition(1000,"userNew")
         val_users = val_df.select("userNew").distinct().alias("userCol")
@@ -81,12 +97,12 @@ def main(spark, root, data_file, val_file, test_file, model_file1, model_file2, 
 
 
 
-        print(f"regParam: {i}, Alpha: {j}, Rank: {k}")
+        #print(f"regParam: {i}, Alpha: {j}, Rank: {k}")
         #print("regParam"+str(i) +  "  " + "Alpha" + str(j) + "  " + "Rank" + str(k)
         als = ALS(maxIter=10, regParam = RegParam, alpha = Alpha, rank = Rank, \
-                          userCol="userNew", itemCol="trackNew", ratingCol="count",\
+                          userCol="userNew", itemCol="trackNew", ratingCol="modcounts",\
                           coldStartStrategy="drop",implicitPrefs=True)
-        alsmodel = als.fit(df)
+        alsmodel = als.fit(alt_df)
 
         #rec = alsmodel.recommendForUserSubset(val_users,500)
         rec = alsmodel.recommendForAllUsers(500)
@@ -102,7 +118,7 @@ def main(spark, root, data_file, val_file, test_file, model_file1, model_file2, 
 
         PRECISIONS[map_calc] = [precision,alsmodel,als]
         count += 1
-        print(f"finished {count} of {total}")
+        #print(f"finished {count} of {total}")
 
         print(f"precision at: {precision}, MAP: {map_calc}")
         best_map = max(list(PRECISIONS.keys()))
