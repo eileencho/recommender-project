@@ -65,8 +65,8 @@ def main(spark, root, data_file, val_file, test_file, model_file, tuning = False
         for j in Alpha:
             for k in Rank:
 
-                #print(f"regParam: {i}, Alpha: {j}, Rank: {k}")
-		print("regParam"+str(i) +  "  " + "Alpha" + str(j) + "  " + "Rank" + str(k)
+                print(f"regParam: {i}, Alpha: {j}, Rank: {k}")
+		#print("regParam"+str(i) +  "  " + "Alpha" + str(j) + "  " + "Rank" + str(k)
                 als = ALS(maxIter=10, regParam = i, alpha = j, rank = k, \
                           userCol="userNew", itemCol="trackNew", ratingCol="count",\
                           coldStartStrategy="drop",implicitPrefs=True)
