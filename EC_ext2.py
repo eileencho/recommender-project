@@ -37,11 +37,13 @@ def main(spark, sc, test_file, index_file, model_file, limit = 1000):
     annoy(alsmodel,groundTruth,testUsers,sc)
 
     trees = [20,30,40,50]
-    ks = [10,50,100]
+    ks = [-1,10,50,100]
+    #ks = [-1]
 
     for t in trees:
         for k in ks:
             annoy(alsmodel,groundTruth,testUsers,sc,n_trees=t,search_k=k)
+    print("finished!")
 
 
 def baseline(alsmodel, groundTruth, testUsers):
@@ -55,7 +57,7 @@ def baseline(alsmodel, groundTruth, testUsers):
     metrics = RankingMetrics(scoreAndLabels)
     precision = metrics.precisionAt(500)
     MAP = metrics.meanAveragePrecision
-    print(f"time elapsed: {time()-start_time}")
+    print(f"time elapsed: {time()-start_time}s")
     print(f"precision at 500: {precision}")
     print(f"MAP: {MAP}")
 
@@ -80,7 +82,7 @@ def annoy(alsmodel, groundTruth, testUsers, sc,n_trees=10, search_k=-1):
     metrics = RankingMetrics(scoreAndLabels)
     precision = metrics.precisionAt(500)
     MAP = metrics.meanAveragePrecision
-    print(f"time elapsed: {time()-start_time}")
+    print(f"time elapsed: {time()-start_time}s")
     print(f"precision at 500: {precision}")
     print(f"MAP: {MAP}")
     a.unload()
