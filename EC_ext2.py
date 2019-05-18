@@ -18,7 +18,7 @@ from pyspark.sql import Row
 from annoy import AnnoyIndex
 from time import time
 
-def main(spark, sc, test_file, index_file, model_file, limit = 1000):
+def main(spark, sc, test_file, index_file, model_file, limit = 0.01):
     
     # Load the dataframe
     test = spark.read.parquet(test_file)
@@ -26,7 +26,7 @@ def main(spark, sc, test_file, index_file, model_file, limit = 1000):
     #transform user and track ids
     test = indexer.transform(test)
     #select distinct users for recommendations, limit if needed
-    testUsers = test.select("userNew").distinct().alias("userCol").limit(limit)
+    testUsers = test.select("userNew").distinct().alias("userCol").sample(limit)
     #establish "ground truth"
     groundTruth = test.groupby("userNew").agg(F.collect_list("trackNew").alias("truth"))
     print("created ground truth df")
@@ -36,9 +36,8 @@ def main(spark, sc, test_file, index_file, model_file, limit = 1000):
     baseline(alsmodel, groundTruth, testUsers)
     annoy(alsmodel,groundTruth,testUsers,sc)
 
-    trees = [20,30,40,50]
+    trees = [10,20,30,40,50]
     ks = [-1,10,50,100]
-    #ks = [-1]
 
     for t in trees:
         for k in ks:
@@ -107,7 +106,7 @@ if __name__ == "__main__":
     try:
         limit = sys.argv[4]
     except:
-        limit = 1000
+        limit = 0.01
 
 
 
