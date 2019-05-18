@@ -67,7 +67,7 @@ def annoy(alsmodel, groundTruth, testUsers, n_trees=10, search_k=-1):
     for row in userfactors.collect():
         a.add_item(row.id, row.features)
     a.build(n_trees)
-    a.save("./anns/annoy_t"+n_trees+"_k_"+search_k+".ann")
+    a.save("./anns/annoy_t"+str(n_trees)+"_k_"+str(search_k)+".ann")
     rec_list = [(u.userNew,a.get_nns_by_item(int(u.userNew),500)) for u in testUsers.collect()]
     temp = sc.parallelize(rec_list)
     print("created recs")
