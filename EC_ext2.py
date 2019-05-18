@@ -7,6 +7,7 @@
 import sys
 
 # And pyspark.sql to get the spark session
+from pyspark.context import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.ml.recommendation import ALS, ALSModel
 from pyspark.ml.feature import StringIndexer, StringIndexerModel
@@ -17,7 +18,7 @@ from pyspark.sql import Row
 from annoy import AnnoyIndex
 from time import time
 
-def main(spark, test_file, index_file, model_file, limit = 1000):
+def main(spark, sc, test_file, index_file, model_file, limit = 1000):
     
     # Load the dataframe
     test = spark.read.parquet(test_file)
@@ -33,14 +34,14 @@ def main(spark, test_file, index_file, model_file, limit = 1000):
 
     #default version
     baseline(alsmodel, groundTruth, testUsers)
-    annoy(alsmodel,groundTruth,testUsers)
+    annoy(alsmodel,groundTruth,testUsers,sc)
 
     trees = [20,30,40,50]
     ks = [10,50,100]
 
     for t in trees:
         for k in ks:
-            annoy(alsmodel,groundTruth,testUsers,n_trees=t,search_k=k)
+            annoy(alsmodel,groundTruth,testUsers,sc,n_trees=t,search_k=k)
 
 
 def baseline(alsmodel, groundTruth, testUsers):
@@ -58,8 +59,9 @@ def baseline(alsmodel, groundTruth, testUsers):
     print(f"precision at 500: {precision}")
     print(f"MAP: {MAP}")
 
-def annoy(alsmodel, groundTruth, testUsers, n_trees=10, search_k=-1):
+def annoy(alsmodel, groundTruth, testUsers, sc,n_trees=10, search_k=-1):
     print(f"annoy index version with n_trees: {n_trees}, search_k: {search_k}")
+    sc = SparkContext.getOrCreate()
     userfactors = alsmodel.userFactors
     size = userfactors.limit(1).select(F.size("features").alias("calc_size")).collect()[0].calc_size
     start_time = time()
@@ -88,6 +90,7 @@ if __name__ == "__main__":
 
     # Create the spark session object
     spark = SparkSession.builder.appName('ext2').getOrCreate()
+    sc = SparkContext.getOrCreate()
 
     # Get the filename from the command line
     test_file = sys.argv[1]
@@ -102,4 +105,4 @@ if __name__ == "__main__":
 
 
     # Call our main routine
-    main(spark, test_file, index_file, model_file)
+    main(spark, sc, test_file, index_file, model_file)
