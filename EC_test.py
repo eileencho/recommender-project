@@ -22,19 +22,21 @@ def main(spark, test_file, index_file, model_file):
     #transform user and track ids
     test = indexer.transform(test)
     #select distinct users for recommendations
-    testUsers = test.select("userNew").distinct().alias("userCol")
+    #testUsers = test.select("userNew").distinct().alias("userCol")
     #establish "ground truth"
     groundTruth = test.groupby("userNew").agg(F.collect_list("trackNew").alias("truth"))
     print("created ground truth df")
     alsmodel = ALSModel.load(model_file)
-    rec = alsmodel.recommendForUserSubset(testUsers,500)
+    rec = alsmodel.recommendForAllUsers(500)
     print("created recs")
     predictions = rec.join(groundTruth, rec.userNew==groundTruth.userNew, 'inner')
                 
     scoreAndLabels = predictions.select('recommendations.trackNew','truth').rdd.map(tuple)
     metrics = RankingMetrics(scoreAndLabels)
     precision = metrics.precisionAt(500)
+    map_out = metrics.meanAveragePrecision
     print(f"precision at 500: {precision}")
+    print(f"map : {map_out}")
 
     
     
