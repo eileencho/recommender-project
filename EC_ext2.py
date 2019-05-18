@@ -1,6 +1,6 @@
 '''Usage:
 
-    $ spark-submit test_file index_file model_file
+    $ spark-submit test_file index_file model_file, limit
 
 '''
 # We need sys to get the command line arguments
@@ -104,7 +104,12 @@ if __name__ == "__main__":
     # And the location of trained model
     model_file = sys.argv[3]
 
+    try:
+        limit = sys.argv[4]
+    except:
+        limit = 1000
+
 
 
     # Call our main routine
-    main(spark, sc, test_file, index_file, model_file)
+    main(spark, sc, test_file, index_file, model_file, limit)
