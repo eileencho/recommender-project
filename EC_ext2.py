@@ -60,7 +60,7 @@ def baseline(alsmodel, groundTruth, testUsers):
 
 def annoy(alsmodel, groundTruth, testUsers, n_trees=10, search_k=-1):
     print(f"annoy index version with n_trees: {n_trees}, search_k: {search_k}")
-    userfactors = model.userFactors()
+    userfactors = alsmodel.userFactors()
     size = userfactors.limit(1).select(size("features").alias("calc_size")).collect()[0].calc_size
     start_time = time()
     a = AnnoyIndex(size)
